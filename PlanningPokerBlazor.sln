@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32210.238
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlanningPokerBlazor.Server", "PlanningPokerBlazor\Server\PlanningPokerBlazor.Server.csproj", "{24C0DA0E-FC5A-48D7-89AC-E8F64D9CD3B6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlanningPokerBlazor.Client", "PlanningPokerBlazor\Client\PlanningPokerBlazor.Client.csproj", "{3FE70BB8-4548-4D26-A523-524A564B80AC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlanningPokerBlazor.Shared", "PlanningPokerBlazor\Shared\PlanningPokerBlazor.Shared.csproj", "{832BD350-05D4-41AF-82D4-5E0DD6E68C54}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{24C0DA0E-FC5A-48D7-89AC-E8F64D9CD3B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24C0DA0E-FC5A-48D7-89AC-E8F64D9CD3B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24C0DA0E-FC5A-48D7-89AC-E8F64D9CD3B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24C0DA0E-FC5A-48D7-89AC-E8F64D9CD3B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FE70BB8-4548-4D26-A523-524A564B80AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FE70BB8-4548-4D26-A523-524A564B80AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FE70BB8-4548-4D26-A523-524A564B80AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FE70BB8-4548-4D26-A523-524A564B80AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{832BD350-05D4-41AF-82D4-5E0DD6E68C54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{832BD350-05D4-41AF-82D4-5E0DD6E68C54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{832BD350-05D4-41AF-82D4-5E0DD6E68C54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{832BD350-05D4-41AF-82D4-5E0DD6E68C54}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D4985475-0740-4304-8AA4-1A11F7A025F4}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 4
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://giullianosg.visualstudio.com/
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = PlanningPokerBlazor\\Client\\PlanningPokerBlazor.Client.csproj
+		SccProjectName1 = PlanningPokerBlazor/Client
+		SccLocalPath1 = PlanningPokerBlazor\\Client
+		SccProjectUniqueName2 = PlanningPokerBlazor\\Server\\PlanningPokerBlazor.Server.csproj
+		SccProjectName2 = PlanningPokerBlazor/Server
+		SccLocalPath2 = PlanningPokerBlazor\\Server
+		SccProjectUniqueName3 = PlanningPokerBlazor\\Shared\\PlanningPokerBlazor.Shared.csproj
+		SccProjectName3 = PlanningPokerBlazor/Shared
+		SccLocalPath3 = PlanningPokerBlazor\\Shared
+	EndGlobalSection
+EndGlobal

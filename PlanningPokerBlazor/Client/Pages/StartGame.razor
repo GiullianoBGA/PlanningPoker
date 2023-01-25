@@ -1,0 +1,251 @@
+﻿@using Microsoft.AspNetCore.SignalR.Client
+@using PlanningPokerBlazor.Client.Services
+@using PlanningPokerBlazor.Shared
+
+@inject NavigationManager NavigationManager
+@inject GameStateManager StateManager
+@inject HttpClient Http
+@inject TooltipService tooltipService
+
+<h3 style="color: #ffffff;">Planning Poker</h3>
+<hr />
+<div class="container">
+    <div class="btn-group" role="group">
+        <button type="button" class="btn btn-primary" @onclick="() => InitNewGame()">Nova Sala</button>
+        <button type="button" class="btn btn-secondary" @onclick="() => JoinExistingGame()">Entrar em Sala Existente</button>
+    </div>
+</div>
+
+<br />
+
+
+<style>
+    body {
+        /*background-image: url("/data/background2.png") !important;*/
+        background-color: #000000;
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
+</style>
+
+<EditForm EditContext="@EditContext" style="color:gray">
+    @if (gameType != GameType.Nenhum)
+    {
+        <div class="container">
+            <div class="form-group row mb-1">
+                <label class="col-sm-3 col-form-label" for="sala">Número da Sala</label>
+
+                <div class="col-sm-2">
+                    @if (gameType == GameType.Novo)
+                    {
+                        <RadzenTextBox @bind-Value=@StateManager.Game.Id
+                               MaxLength="4"
+                               Change=@(args => OnChange(args, "TextBox with 4 maximum characters"))
+                               Class="w-30"
+                               Disabled=true />
+                    }
+
+                    @if (gameType == GameType.Existente)
+                    {
+                        @if (salasDisponiveis.Any())
+                        {
+                            <InputSelect id="salaExistente" class="form-control" @bind-Value="GameId" disabled=@(GameType.Novo == gameType)>
+                                <option value="@string.Empty">Selecione a Sala</option>
+                                @foreach (var sala in salasDisponiveis)
+                                {
+                                    <option value="@sala.GameId">@($"{sala.GameId} - {sala.Time}")</option>
+                                }
+                            </InputSelect>
+                        }
+                        else
+                        {
+                            <label class="col-sm-12 col-form-label" for="sala">Nenhum jogo encontrado</label>
+                        }
+                    }
+
+                </div>
+
+                @if (gameType == GameType.Existente)
+                {
+                    <div class="col col-sm-2">
+                        <button type="button" class="btn btn btn-success" @onclick="() => JoinExistingGame()">Recarregar Salas</button>
+                    </div>
+                }
+            </div>
+
+
+            <div class="form-group row mb-1">
+                <label class="col-sm-3 col-form-label" for="time">Time</label>
+
+                <div class="col-sm-9">
+                    <RadzenTextBox @bind-Value=@StateManager.Game.Time
+                               MaxLength="100"
+                               Change=@(args => OnChange(args, "TextBox with 100 maximum characters"))
+                               Class="w-30"
+                               Disabled=@(gameType == GameType.Existente) />
+                </div>
+            </div>
+
+            <div class="form-group row mb-1">
+                <label class="col-sm-3 col-form-label" for="nome">Nome</label>
+
+                <div class="col-sm-9">
+                    <RadzenTextBox @bind-Value=@StateManager.Player.Name
+                               MaxLength="20"
+                               Change=@(args => OnChange(args, "TextBox with 20 maximum characters"))
+                               Class="w-30" />
+                </div>
+            </div>
+
+            <div class="form-group row mb-1">
+                <label class="col-sm-3 col-form-label" for="tipo">Tipo</label>
+
+                <div class="col-sm-9">
+                    <RadzenDropDown id="tipo" AllowClear="true" TValue="EnumMemberType" Class="w-30"
+                                Data=@(EnumServices.GetOptions<EnumMemberType>())
+                                TextProperty="Description"
+                                ValueProperty="Value"
+                                Change=@(args => OnChangeDropDownTipo(args, "DropDown"))
+                                @bind-Value="StateManager.Player.MemberType" />
+                </div>
+            </div>
+
+            @if (StateManager.Player.MemberType == EnumMemberType.Player)
+            {
+                <div class="form-group row mb-1">
+                    <label class="col-sm-3 col-form-label" for="tipo">Atuação</label>
+
+                    <div class="col-sm-9">
+                        <RadzenDropDown id="tipo" AllowClear="true" TValue="EnumPlayerType" Class="w-30"
+                                Data=@(EnumServices.GetOptions<EnumPlayerType>())
+                                TextProperty="Description"
+                                ValueProperty="Value"
+                                Change=@(args => OnChangeDropDownTipo(args, "DropDown"))
+                                @bind-Value="StateManager.Player.PlayerType" />
+                    </div>
+                </div>
+            }
+
+            <div class="form-group row mb-1">
+                <label class="col-sm-3 col-form-label" for="experimentalFeatures">Recursos Visuais Experimentais</label>
+
+                <div class="col-sm-9">
+                    <RadzenSelectBar @ref=radzenSelectBar @bind-Value=@StateManager.Player.ExperimentalFeatures TValue="bool"
+                                 MouseEnter="@(args => ShowTooltip(radzenSelectBar.Element, @"Desative caso apresente algum problema na exibição avançada", new TooltipOptions(){ Duration = 10000}) )">
+                        <Items>
+                            <RadzenSelectBarItem Text="Ligado" Value="true" />
+                            <RadzenSelectBarItem Text="Desligado" Value="false" />
+                        </Items>
+                    </RadzenSelectBar>
+                </div>
+            </div>
+
+            @if (gameType == GameType.Novo)
+            {
+                <div class="form-group row mb-1">
+                    <label class="col-sm-3 col-form-label" for="nome">Sequência</label>
+
+                    <div class="col-sm-9">
+                        <RadzenTextBox @bind-Value=@StateManager.Game.Sequence
+                               MaxLength="200"
+                               Change=@(args => OnChange(args, "TextBox with 200 maximum characters"))
+                               Class="w-30" />
+                    </div>
+                </div>
+            }
+
+            <p>
+                <button class="btn btn-primary" @onclick="Start" disabled="@(StateManager.IsStateReady==false)">Iniciar</button>
+            </p>
+        </div>
+    }
+
+</EditForm>
+
+@code {
+    private EditContext EditContext;
+
+    private HubConnection _hubConnection;
+    List<Room> salasDisponiveis = new();
+    private GameType gameType = GameType.Nenhum;
+    private RadzenSelectBar<bool> radzenSelectBar;
+
+    protected override void OnInitialized()
+    {
+        EditContext = new EditContext(StateManager);
+
+        base.OnInitialized();
+    }
+
+    private void InitNewGame()
+    {
+        var random = new Random();
+        int novoId = random.Next(1000, 9999);
+
+        gameType = GameType.Novo;
+        StateManager.Game = new Game { Id = novoId.ToString() };
+    }
+
+    private async Task JoinExistingGame()
+    {
+        GameId = string.Empty;
+        salasDisponiveis = await Http.GetFromJsonAsync<List<Room>>("Game\\Obter");
+
+        gameType = GameType.Existente;
+        StateManager.Game = new Game { Id = string.Empty };
+    }
+
+    private string gameId;
+    public string GameId
+    {
+        get { return gameId; }
+        set
+        {
+            gameId = value;
+
+            Room room = salasDisponiveis.FirstOrDefault(x => x.GameId == value);
+            if (room == null)
+            {
+                StateManager.Game.Id = null;
+                StateManager.Game.Time = null;
+            }
+            else
+            {
+                StateManager.Game.Id = room.GameId;
+                StateManager.Game.Time = room.Time;
+                StateManager.Game.Sequence = room.Sequence;
+            }
+        }
+    }
+
+    private void Start()
+    {
+        NavigationManager.NavigateTo("/Play");
+    }
+
+    private enum GameType
+    {
+        Nenhum,
+        Novo,
+        Existente
+    }
+
+    void ShowTooltip(ElementReference elementReference, string texto, TooltipOptions options = null) => tooltipService.Open(elementReference, texto, options);
+
+    void OnChange(string value, string name)
+    {
+
+    }
+
+    void OnChangeRoom(dynamic value, string name)
+    {
+
+    }
+
+    void OnChangeDropDownTipo(object value, string name)
+    {
+        var str = value is IEnumerable<object> ? string.Join(", ", (IEnumerable<object>)value) : value;
+
+        //console.Log($"{name} value changed to {str}");
+    }
+}

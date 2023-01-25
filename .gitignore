@@ -1,0 +1,13 @@
+﻿################################################################################
+# Este arquivo .gitignore foi criado automaticamente pelo Microsoft(R) Visual Studio.
+################################################################################
+
+obj
+bin
+/.vs
+/.obj
+/.bin
+/PlanningPokerBlazor/Client/obj
+/PlanningPokerBlazor/Client/bin/Debug/net6.0
+/PlanningPokerBlazor/Server/bin/Debug/net6.0
+/PlanningPokerBlazor/Server/obj

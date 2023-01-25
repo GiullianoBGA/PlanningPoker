@@ -1,0 +1,22 @@
+﻿@using PlanningPokerBlazor.Shared
+
+<button type="button" class="@BtnClass" @onclick="OnClicked" disabled="@IsDisabled">@Card.Text</button>
+
+@code {
+    [Parameter]
+    public Card Card { get; set; }
+
+    [Parameter]
+    public string BtnClass { get; set; } = "btn btn-secondary";
+
+    [Parameter]
+    public bool IsDisabled { get; set; }
+
+    [Parameter]
+    public EventCallback<Card> OnCardClicked { get; set; }
+
+    private async Task OnClicked()
+    {
+        await OnCardClicked.InvokeAsync(Card);
+    }
+}

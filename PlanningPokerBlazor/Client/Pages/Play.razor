@@ -1,0 +1,616 @@
+﻿@page "/Play"
+
+@using Microsoft.AspNetCore.SignalR.Client
+@using PlanningPokerBlazor.Client.Models
+@using PlanningPokerBlazor.Client.Services
+@using PlanningPokerBlazor.Shared
+
+@inject NavigationManager NavigationManager
+@inject GameStateManager StateManager
+@inject DialogService DialogService
+@implements IDisposable
+
+<h3 style="color: #ffffff;">Planning Poker</h3>
+<hr />
+
+@if (!StateManager.Player.ExperimentalFeatures)
+{
+    <div>
+        <label>Sala: @StateManager.Game.Id</label>
+        <label>Time: @StateManager.Game.Time</label>
+    </div>
+    <div class="btn-group" role="group">
+        @foreach (var card in VotedNumbers(StateManager.Game.Sequence))
+        {
+            <DeckCard Card="card" OnCardClicked="PlayCardAsync" IsDisabled="@(allPlayersHavePlayed || StateManager.Player.MemberType != EnumMemberType.Player|| isDeniedToVote)"></DeckCard>
+        }
+    </div>
+
+    <button class="btn btn-primary" @onclick="ResetGame" disabled=@isResetGameDisabled>Nova Votação</button>
+}
+
+<style>
+    body {
+        /*background-image: url("/data/background2.png") !important;*/
+        background-color: @(StateManager.Player.ExperimentalFeatures ? "#134644" : string.Empty);
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
+
+    .square-box {
+        position: absolute;
+        width: 90%;
+        height: 90%;
+        overflow: hidden;
+        background: #394137; /*#1d221c;*/ /*#4679BD;*/
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        margin: auto;
+        border-radius: 150px;
+        border: 10px solid black; /*10px solid #6e5331;*/
+    }
+
+        .square-box:before {
+            content: "";
+            display: block;
+            padding-top: 100%;
+        }
+
+    .square-content {
+        position: absolute;
+        top: 45%;
+        left: 44%;
+        color: white;
+        width: 100%;
+        height: 100%;
+    }
+
+        .square-content div {
+            display: table;
+            width: 100%;
+            height: 100%;
+        }
+
+        .square-content span {
+            display: table-cell;
+            text-align: center;
+            vertical-align: middle;
+            color: white
+        }
+
+    .players {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        z-index: 100;
+    }
+
+        .players .player {
+            position: absolute;
+        }
+
+            .players .player .avatar {
+                width: 10vh;
+                height: 10vh;
+                background-color: lightcoral;
+                border-radius: 100%;
+                position: relative;
+                top: 20px;
+                z-index: 1;
+            }
+
+    .maintable {
+        min-height: 50vh;
+        height: 50vh;
+    }
+
+    #tablePlanning {
+        position: relative;
+        width: 60%;
+        height: 50%;
+        overflow: inherit;
+        left: 1.5%;
+        right: 0;
+        top: 12%;
+        bottom: 0;
+        margin: auto;
+        /*position: absolute; margin: auto;*/
+    }
+
+    .timer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: #FFF;
+        /*font-weight: bold;*/
+        font-size: 1.2vw;
+    }
+</style>
+
+@if (gamePlays.Any())
+{
+    @if (StateManager.Player.ExperimentalFeatures)
+    {
+        <div class="container">
+            <div class="row justify-content-md-center">
+
+                <div class="col col-lg-2">
+                    @*1 of 3*@
+                </div>
+                <div class="col-md-auto btn-group" role="group">
+                    @foreach (var card in VotedNumbers(StateManager.Game.Sequence))
+                    {
+                        <DeckCard BtnClass=@DeckCardClass(card.Text) Card="card" OnCardClicked="PlayCardAsync" IsDisabled="@(allPlayersHavePlayed || StateManager.Player.MemberType != EnumMemberType.Player || isDeniedToVote)"></DeckCard>
+                    }
+                    <br />
+                    <button class="btn btn-primary" @onclick="ResetGame" disabled=@isResetGameDisabled>Nova Votação</button>
+                </div>
+
+                <div class="col col-lg-2">
+                    @*3 of 3*@
+                </div>
+            </div>
+            <div class="row justify-content-md-center">
+                <div class="col col-md-12">
+                    <br />
+                </div>
+            </div>
+        </div>
+
+        <div class="maintable">
+
+            @if (gamePlays.Any(x => x.Player.MemberType != EnumMemberType.Player))
+            {
+                <div class="col-md-2" style="position:absolute;">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col" style="color:white;">Nome</th>
+                                <th scope="col" style="color:white;">Qualificação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var gamePlay in gamePlays.Where(x => x.Player.MemberType != EnumMemberType.Player).OrderBy(o => o.Player.MemberType).ThenBy(o => o.Player.Name))
+                            {
+                                <tr class=@SetClassViewer(gamePlay)>
+                                    <td scope="row" style=@(gamePlay.Player.Id == StateManager.Player.Id ? "font-weight:bold;" : "")>@gamePlay.Player.Name</td>
+                                    <td>@gamePlay.Player.MemberType.ToString()</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            <div class="col-md-10" id="tablePlanning" style="min-height: 50vh;">
+                <div class="players">
+                    @foreach (var gamePlay in gamePlays.Where(x => x.Player.MemberType == EnumMemberType.Player).OrderBy(o => o.Player.Name))
+                    {
+                        @*                        <div class=@($"player player-{gamePlay.Player.PlayerColor.Id} playing") id=@($"player{gamePlay.Player.PlayerColor.Id}") style="@GetPlayerCSS(gamePlay.Player.PlayerCSS.Top, gamePlay.Player.PlayerCSS.Left, gamePlay.Player.PlayerCSS.Right)">
+            <div class="avatar timer" style=@($"background: {gamePlay.Player.PlayerColor.Color};{(@gamePlay.Player.Id == StateManager.Player.Id ? "font-weight:bold;" : string.Empty)}")>
+            @($"{gamePlay.Player.Name}-{gamePlay.Player.PlayerCSS.Id}")
+            </div>
+            </div>
+            *@
+                        <div style=@($"{GetPlayerRoundedCSS(gamePlay.Player.PlayerCSS.Top, gamePlay.Player.PlayerCSS.Left, gamePlay.Player.PlayerCSS.Right, gamePlay.Player.PlayerColor.Color)}{(@gamePlay.Player.Id == StateManager.Player.Id ? ";font-weight:bold;" : string.Empty)}")>@($"{gamePlay.Player.Name} - {gamePlay.Player.PlayerType}")</div>
+
+
+                        <div class="flip-card"
+                 style=@(gamePlay.HasPlayed
+                 ? !allPlayersHavePlayed
+                 ? @$"{GetCardPosition("transform: rotateY(180deg);", gamePlay.Player.CardCSS.Top, gamePlay.Player.CardCSS.Left, gamePlay.Player.CardCSS.Right)}"
+                 : @GetCardPosition(string.Empty,gamePlay.Player.CardCSS.Top, gamePlay.Player.CardCSS.Left, gamePlay.Player.CardCSS.Right)
+                 : "display: none")>
+                            <div class="flip-card-inner" style=@(!allPlayersHavePlayed ? "transform: rotateY(180deg);" : "")>
+                                <div class="flip-card-front" style="background-color: @(allPlayersHavePlayed ? gamePlay.CardPlayed.Color : "#000000a6");">
+                                    @gamePlay.CardPlayed.Text
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class='square-box'>
+                    <div class='square-content'>
+                        <span>
+                            <label>@($"Time: {StateManager.Game.Time} | Sala: {StateManager.Game.Id}")</label>
+                        </span>
+                        <br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Jogador</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Carta Votada</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var gamePlay in gamePlays.Where(x => x.Player.MemberType == EnumMemberType.Player).OrderBy(o => o.Player.Name))
+                {
+                    <tr>
+                        <td scope="row" style=@(gamePlay.Player.Id == StateManager.Player.Id ? "font-weight:bold" : "")>@gamePlay.Player.Name</td>
+                        <td>
+                            @if (allPlayersHavePlayed)
+                            {
+                                @gamePlay.CardPlayed.Text
+                            }
+                            else
+                            {
+                                @(gamePlay.HasPlayed ? "Votou" : "")
+                            }
+                        </td>
+                        <td>
+                            <div class="flip-card" style=@(!allPlayersHavePlayed ? "transform: rotateY(180deg);" : "")>
+                                <div class="flip-card-inner" style=@(!allPlayersHavePlayed ? "transform: rotateY(180deg);" : "")>
+                                    <div class="flip-card-front" style="background-color: @(allPlayersHavePlayed ? gamePlay.CardPlayed.Color : "#000000a6");">
+                                        @gamePlay.CardPlayed.Text
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@if (StateManager.Player.ExperimentalFeatures)
+{
+    @if (allPlayersHavePlayed)
+    {
+        <div id="resultadosGraficos" class="container" style="position: absolute; top: 20%; right: 3%; max-width: 15%;">
+            @if (refineResult.Any())
+            {
+                <div class="row justify-content-md-center">
+                    <div class="col col-lg-12">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Número</th>
+                                    <th scope="col">Votações</th>
+                                    <th scope="col">Média Votos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    Boolean firstLine = true;
+                                }
+                                @foreach (var item in refineResult.OrderByDescending(o => o.Amount).ThenBy(o => o.Number))
+                                {
+                                    <tr>
+                                        <td scope="row" style="width: 35px;color:white;">@item.Number</td>
+                                        <td width: style="width: 35px;color:white;">
+                                            @item.Amount
+                                        </td>
+                                        <td>
+                                            <RadzenCard>
+                                                <RadzenProgressBar Value=@(System.Convert.ToDouble(@item.Average)) />
+                                            </RadzenCard>
+                                        </td>
+                                    </tr>
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="row justify-content-md-center">
+                        <div class="row">
+                            <div class="flip-card" style=@(!allPlayersHavePlayed ? "transform: rotateY(180deg);" : "")>
+                                <div class="flip-card-inner" style=@(!allPlayersHavePlayed ? "transform: rotateY(180deg);width:200%;" : "")>
+                                    <div class="flip-card-front" style="background-color: green;font-size:2.5vw;width:200%;">
+                                        @media
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row justify-content-md-center">
+                            <RadzenChart SeriesClick=@OnSeriesClick>
+                                <RadzenPieSeries Data="@seriesResult" Title="Qtde" CategoryProperty="Numero" ValueProperty="Qtde" />
+                            </RadzenChart>
+                        </div>
+
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+else
+{
+    @if (refineResult.Any())
+    {
+        <table class="table" style="max-width: 400px;">
+            <thead>
+                <tr>
+                    <th scope="col">Número</th>
+                    <th scope="col">Votações</th>
+                    <th scope="col" style="min-width: 50px">Média</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    Boolean firstLine = true;
+                }
+                @foreach (var item in refineResult.OrderByDescending(o => o.Amount).ThenBy(o => o.Number))
+                {
+                    <tr>
+                        <td scope="row" style="width: 35px;">@item.Number</td>
+                        <td width: style="width: 35px;">
+                            @item.Amount
+                        </td>
+                        @if (firstLine)
+                        {
+                            <td style="min-width: 50px;color:white;">
+                                <div class="flip-card" style=@(!allPlayersHavePlayed ? "transform: rotateY(180deg);" : "")>
+                                    <div class="flip-card-inner" style=@(!allPlayersHavePlayed ? "transform: rotateY(180deg);width:200%;" : "")>
+                                        <div class="flip-card-front" style="background-color: green;font-size:2.5vw;width:200%;">
+                                            @media
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            firstLine = false;
+                        }
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    }
+
+}
+
+@code {
+    private bool allPlayersHavePlayed = false;
+    private bool isResetGameDisabled = false;
+    private bool isDeniedToVote = false;
+    private EnumPlayerType enumPlayerType = EnumPlayerType.Backend;
+    private decimal media;
+    private List<Results> refineResult = new();
+    private DataItem[] seriesResult = null;
+    private HubConnection hubConnection = null;
+    private IEnumerable<GamePlay> gamePlays = new List<GamePlay>();
+    private RadzenSelectBar<Card> radzenSelectBarCards;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ValidateGameState();
+
+        hubConnection = new HubConnectionBuilder()
+        .WithUrl(NavigationManager.ToAbsoluteUri("/GameHub"))
+        .Build();
+
+
+        hubConnection.On<UpdateGameRequest>("UpdateGame", async (UpdateGameRequest updateGameRequest) =>
+    {
+        this.gamePlays = updateGameRequest.GamePlays;
+
+        if (updateGameRequest.PlayerType.HasValue)
+            this.enumPlayerType = updateGameRequest.PlayerType.Value;
+
+        //isDeniedToVote = enumPlayerType != EnumPlayerType.Ambos && StateManager.Player.MemberType == EnumMemberType.Player && StateManager.Player.PlayerType != enumPlayerType;
+        isDeniedToVote = !(StateManager.Player.MemberType == EnumMemberType.Player && (enumPlayerType == EnumPlayerType.FullStack || StateManager.Player.PlayerType == enumPlayerType || StateManager.Player.PlayerType == EnumPlayerType.FullStack));
+
+        allPlayersHavePlayed = gamePlays.Where(x => x.Player.MemberType == EnumMemberType.Player
+    && (enumPlayerType == EnumPlayerType.FullStack || x.Player.PlayerType == enumPlayerType || x.Player.PlayerType == EnumPlayerType.FullStack)).All(gp => gp.HasPlayed);
+
+        if (allPlayersHavePlayed)
+        {
+            this.GetGameplayResults(this.gamePlays);
+
+            if (gamePlays.Any(x => x.Player.MemberType == EnumMemberType.Player && !x.CardPlayed.Flipped))
+            {
+                await hubConnection.SendAsync("FlipCardAsync");
+            }
+        }
+
+        UpdateScreen();
+
+        StateHasChanged();
+    });
+
+
+        await hubConnection.StartAsync();
+
+        try
+        {
+            await hubConnection.SendAsync("RegisterPlayerAsync", new RegisterPlayerRequest { Player = StateManager.Player, Game = StateManager.Game });
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+
+    public void Dispose()
+    {
+        _ = hubConnection.DisposeAsync();
+    }
+
+    private async Task PlayCardAsync(Card card)
+    {
+        await hubConnection.SendAsync("PlayCardAsync", new PlayCardRequest { CardPlayed = card });
+    }
+
+    private async Task ResetGame()
+    {
+        await ShowInlineDialog();
+
+        await hubConnection.SendAsync("ResetGame", new ResetGameRequest { Game = StateManager.Game, PlayerType = enumPlayerType });
+        refineResult = new();
+        media = 0;
+
+        UpdateScreen();
+    }
+
+    private void UpdateScreen()
+    {
+        isResetGameDisabled = gamePlays
+        .Any(a => (a.Player.MemberType == EnumMemberType.ProductOwner || a.Player.MemberType == EnumMemberType.ScrumMaster))
+        && (StateManager.Player.MemberType == EnumMemberType.Player || StateManager.Player.MemberType == EnumMemberType.Viewer);
+    }
+
+    private void ValidateGameState()
+    {
+        if (!StateManager.IsStateReady)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+    private void GetGameplayResults(IEnumerable<GamePlay> gamePlays)
+    {
+        var teste = gamePlays.ToList();
+        teste.ForEach(x => x.CardPlayed = x.CardVoted);
+
+        gamePlays = teste;
+
+        decimal total = gamePlays.Where(x => x.Player.MemberType == EnumMemberType.Player && (enumPlayerType == EnumPlayerType.FullStack || enumPlayerType == x.Player.PlayerType || x.Player.PlayerType == EnumPlayerType.FullStack)).Count();
+
+        //string t = $"{total}";
+        var temp = System.Math.Round(System.Convert.ToDecimal(total) / 2 * 100, 2);
+
+        refineResult = gamePlays.Where(x => x.Player.MemberType == EnumMemberType.Player && (enumPlayerType == EnumPlayerType.FullStack || enumPlayerType == x.Player.PlayerType || x.Player.PlayerType == EnumPlayerType.FullStack))
+        .GroupBy(g => g.CardPlayed.Value)
+        .Select(x => new Results
+        {
+            Number = int.Parse(x.Key.ToString()),
+            Amount = x.Count(),
+            Average = Math.Round(x.Count() / total * 100, 2),
+        }).ToList();
+
+        media = Math.Round(gamePlays.Where(x => x.Player.MemberType == EnumMemberType.Player && (enumPlayerType == EnumPlayerType.FullStack || enumPlayerType == x.Player.PlayerType || x.Player.PlayerType == EnumPlayerType.FullStack)).Average(a => decimal.Parse(a.CardPlayed.Value)), 2);
+
+        seriesResult = gamePlays.Where(x => x.Player.MemberType == EnumMemberType.Player && (enumPlayerType == EnumPlayerType.FullStack || enumPlayerType == x.Player.PlayerType || x.Player.PlayerType == EnumPlayerType.FullStack)).GroupBy(g => g.CardPlayed.Value)
+        .Select(x => new DataItem
+        {
+            Numero = x.Key.ToString(),
+            Qtde = x.Count(),
+        }).ToArray();
+    }
+
+    void OnSeriesClick(SeriesClickEventArgs args)
+    {
+    }
+
+    private List<Card> VotedNumbers(string sequence)
+    {
+        var converter = sequence.Split(";");
+
+        List<Card> numeros = new();
+        foreach (var item in converter)
+        {
+            int.TryParse(item, out int numero);
+            if (numero > 0 && !numeros.Any(x => x.Value.Equals(item)))
+            {
+                numeros.Add(new Card
+                        {
+                            Text = item,
+                            Value = item
+                        });
+            }
+        }
+
+        return numeros.OrderBy(o => int.Parse(o.Value)).ToList();
+    }
+
+    private string GetPlayerCSS(decimal top, decimal left, decimal right)
+    {
+        string cssTop = top == 0 ? string.Empty : $"top: {top.ToString(System.Globalization.CultureInfo.InvariantCulture)}%;";
+        string cssLeft = left == 0 ? string.Empty : $"left: {left.ToString(System.Globalization.CultureInfo.InvariantCulture)}%;";
+        string cssRight = right == 0 ? string.Empty : $"right: {right.ToString(System.Globalization.CultureInfo.InvariantCulture)}%;";
+
+        return $"{cssTop} {cssLeft} {cssRight} -webkit-transform: translatex(-50%) translatey(-50%);transform: translatex(-50%) translatey(-50%);";
+    }
+
+    private string GetPlayerRoundedCSS(decimal top, decimal left, decimal right, string color)
+    {
+        /*
+         border-style: groove;
+                    border-radius: 12px;
+                    padding: 5px;
+                    background: linear-gradient(to bottom right, gray, black);
+                    color: white;
+                    width: 11vh;
+                    height: 7vh;
+                    flex-wrap: wrap;
+                    margin:10px;
+                    position: relative;
+                    top: 88%;
+                    left: 50%;
+         */
+
+        string cssTop = top == 0 ? string.Empty : $"top: {top.ToString(System.Globalization.CultureInfo.InvariantCulture)}%;";
+        string cssLeft = left == 0 ? string.Empty : $"left: {left.ToString(System.Globalization.CultureInfo.InvariantCulture)}%;";
+        string cssRight = right == 0 ? string.Empty : $"right: {right.ToString(System.Globalization.CultureInfo.InvariantCulture)}%;";
+
+        //return $"{cssTop} {cssLeft} {cssRight} border-style: groove; border-radius: 12px; padding: 5px; background: linear-gradient(to bottom right, gray, {color}); color: white; width: 11vh; height: 7vh; flex-wrap: wrap; margin:10px; position: relative;";
+        //   return $"{cssTop} {cssLeft} {cssRight} border-style: groove; border-radius: 12px; padding: 5px; background: linear-gradient(to bottom right, gray, {color}); color: white; width: 11vh; height: 7vh; flex-wrap: wrap; margin:10px; position: sticky;";
+        return $"{cssTop} {cssLeft} {cssRight} font-size: 75%; border-style: groove; border-radius: 12px; padding: 5px; background: linear-gradient(to bottom right, gray, {color}); color: white; width: 11vh; height: 7vh; flex-wrap: wrap; margin:10px; position: absolute;";
+    }
+
+    private string GetCardPosition(string transform, decimal top, decimal left, decimal right)
+    {
+        return $"position:absolute;{transform}{GetPlayerCSS(top, left, right)}";
+    }
+
+    private string SetClassViewer(GamePlay gamePlay)
+    {
+        switch (gamePlay.Player.MemberType)
+        {
+            case EnumMemberType.ProductOwner:
+                return "table-primary";
+            case EnumMemberType.ScrumMaster:
+                return "table-success";
+            case EnumMemberType.Viewer:
+                return "table-info";
+            default:
+                return string.Empty;
+        }
+    }
+
+    async Task OnChange(object value, string name)
+    {
+        await PlayCardAsync((Card)value);
+    }
+
+    private string DeckCardClass(string carta)
+    {
+        Card cartaJogada = gamePlays.First(x => x.Player.Id == StateManager.Player.Id).CardPlayed;
+        string btnClass = "btn btn-secondary";
+
+        if (cartaJogada != null && !string.IsNullOrEmpty(cartaJogada.Text) && cartaJogada.Text.Equals(carta))
+            btnClass = "btn btn-primary";
+
+        return btnClass;
+    }
+
+    async Task ShowInlineDialog()
+    {
+        var result = await DialogService.OpenAsync("Área da nova tarefa", ds =>
+    @<div>
+        <p class="mb-4">Informe a área de atuação da nova tarefa</p>
+        <div class="row">
+            <div class="col">
+                <RadzenButton Text="Backend" Click="(() => { enumPlayerType = EnumPlayerType.Backend; ds.Close(true); })" ButtonStyle="ButtonStyle.Info" Class="me-1" />
+                <RadzenButton Text="Frontend" Click="(() => { enumPlayerType = EnumPlayerType.FrontEnd; ds.Close(true); })" ButtonStyle="ButtonStyle.Primary" Class="me-1" />
+                <RadzenButton Text="Ambos" Click="(() => { enumPlayerType = EnumPlayerType.FullStack; ds.Close(true); })" ButtonStyle="ButtonStyle.Success" Class="me-1" />
+            </div>
+        </div>
+    </div>
+    );
+    }
+}
