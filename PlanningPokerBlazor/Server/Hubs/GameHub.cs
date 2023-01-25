@@ -21,7 +21,6 @@ namespace PlanningPokerBlazor.Server.Hubs
             }
             else
             {
-                //teste
                 Room? room = RoomsCreated.RoomList.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
                 room.GameId = registerPlayerRequest.Game.Id;
                 room.Time = registerPlayerRequest.Game.Time;
