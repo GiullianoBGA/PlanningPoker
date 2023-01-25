@@ -7,63 +7,49 @@
 @inject HttpClient Http
 @inject TooltipService tooltipService
 
-<h3 style="color: #ffffff;">Planning Poker</h3>
+<h1 class="planning-title">Planning Poker</h1>
 <hr />
-<div class="container">
-    <div class="btn-group" role="group">
-        <button type="button" class="btn btn-primary" @onclick="() => InitNewGame()">Nova Sala</button>
-        <button type="button" class="btn btn-secondary" @onclick="() => JoinExistingGame()">Entrar em Sala Existente</button>
-    </div>
+
+<div class="planning-initial-choose">
+    <button type="button" class="btn btn-primary" @onclick="() => InitNewGame()">Nova Sala</button>
+    <button type="button" class="btn btn-secondary" @onclick="() => JoinExistingGame()">Entrar em Sala Existente</button>
 </div>
 
 <br />
-
-
-<style>
-    body {
-        /*background-image: url("/data/background2.png") !important;*/
-        background-color: #000000;
-        background-repeat: no-repeat;
-        background-size: cover;
-    }
-</style>
 
 <EditForm EditContext="@EditContext" style="color:gray">
     @if (gameType != GameType.Nenhum)
     {
         <div class="container">
-            <div class="form-group row mb-1">
-                <label class="col-sm-3 col-form-label" for="sala">Número da Sala</label>
+            <div class="number-room">
+                <label class="number-room-lbl" for="sala">Número da Sala</label>
 
-                <div class="col-sm-2">
-                    @if (gameType == GameType.Novo)
+                @if (gameType == GameType.Novo)
+                {
+                    <RadzenTextBox @bind-Value=@StateManager.Game.Id
+                           MaxLength="4"
+                           Change=@(args => OnChange(args, "TextBox with 4 maximum characters"))
+                           Class="number-room-textbox"
+                           Disabled=true />
+                }
+
+                @if (gameType == GameType.Existente)
+                {
+                    @if (salasDisponiveis.Any())
                     {
-                        <RadzenTextBox @bind-Value=@StateManager.Game.Id
-                               MaxLength="4"
-                               Change=@(args => OnChange(args, "TextBox with 4 maximum characters"))
-                               Class="w-30"
-                               Disabled=true />
+                        <InputSelect id="salaExistente" class="form-control" @bind-Value="GameId" disabled=@(GameType.Novo == gameType)>
+                            <option value="@string.Empty">Selecione a Sala</option>
+                            @foreach (var sala in salasDisponiveis)
+                            {
+                                <option value="@sala.GameId">@($"{sala.GameId} - {sala.Time}")</option>
+                            }
+                        </InputSelect>
                     }
-
-                    @if (gameType == GameType.Existente)
+                    else
                     {
-                        @if (salasDisponiveis.Any())
-                        {
-                            <InputSelect id="salaExistente" class="form-control" @bind-Value="GameId" disabled=@(GameType.Novo == gameType)>
-                                <option value="@string.Empty">Selecione a Sala</option>
-                                @foreach (var sala in salasDisponiveis)
-                                {
-                                    <option value="@sala.GameId">@($"{sala.GameId} - {sala.Time}")</option>
-                                }
-                            </InputSelect>
-                        }
-                        else
-                        {
-                            <label class="col-sm-12 col-form-label" for="sala">Nenhum jogo encontrado</label>
-                        }
+                        <label class="col-sm-12 col-form-label" for="sala">Nenhum jogo encontrado</label>
                     }
-
-                </div>
+                }
 
                 @if (gameType == GameType.Existente)
                 {
@@ -73,9 +59,8 @@
                 }
             </div>
 
-
-            <div class="form-group row mb-1">
-                <label class="col-sm-3 col-form-label" for="time">Time</label>
+            <div style="border: 1px solid red" class="time">
+                <label class="time-lbl" for="time">Time</label>
 
                 <div class="col-sm-9">
                     <RadzenTextBox @bind-Value=@StateManager.Game.Time

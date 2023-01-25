@@ -4,6 +4,48 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+.container {
+    display: flex;
+    flex-direction: column;
+    padding: 0px;
+}
+
+.number-room > .number-room-lbl {
+    margin-bottom: 7px;
+}
+
+@media (max-device-width: 355px) {
+    .number-room .number-room-textbox {
+        width: 100%;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 h1:focus {
     outline: none;
 }
