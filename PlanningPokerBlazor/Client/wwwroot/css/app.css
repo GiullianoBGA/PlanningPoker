@@ -8,10 +8,70 @@ html, body {
     display: flex;
     flex-direction: column;
     padding: 0px;
+    margin: 0px;
 }
 
-.number-room > .number-room-lbl {
+.number-room > .number-room-lbl, .time-lbl, .name-lbl, .type-lbl, .acting-lbl, .experimental-visual-resources-lbl, .sequence-lbl {
     margin-bottom: 7px;
+    padding: 15px 3px 2px 0px;
+}
+
+.number-room-txtbx{
+    margin-left: 113px;
+}
+
+.time-txtbx {
+    margin-left: 194px;
+}
+
+.name-txtbx {
+    margin-left: 186px;
+}
+
+.type-drpdwn {
+    margin-left: 198px;
+}
+
+.acting-drpdwn {
+    margin-left: 170px;
+}
+
+.sequence-txtbx {
+    margin-bottom: 3px;
+    margin-left: 153px;    
+}
+
+@media (max-device-width: 470px){
+    .number-room .number-room-txtbx {
+        margin-left: 0px;
+        width: 100%;
+    }
+
+    .time .time-txtbx {
+        margin-left: 0px;
+        width: 100%;
+    }
+
+    .name .name-txtbx {
+        margin-left: 0px;
+        width: 100%;
+    }
+
+    .type .type-drpdwn {
+        margin-left: 0px;
+        width: 100%;
+    }
+
+    .acting .acting-drpdwn {
+        margin-left: 0px;
+        width: 100%;
+    }
+
+    .sequence .sequence-txtbx {
+        margin-bottom: 7px;
+        margin-left: 0px;
+        width: 100%;
+    }
 }
 
 @media (max-device-width: 355px) {

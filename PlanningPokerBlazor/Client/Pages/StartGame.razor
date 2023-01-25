@@ -29,7 +29,7 @@
                     <RadzenTextBox @bind-Value=@StateManager.Game.Id
                            MaxLength="4"
                            Change=@(args => OnChange(args, "TextBox with 4 maximum characters"))
-                           Class="number-room-textbox"
+                           Class="number-room-txtbx"
                            Disabled=true />
                 }
 
@@ -59,83 +59,74 @@
                 }
             </div>
 
-            <div style="border: 1px solid red" class="time">
+            <div class="time">
                 <label class="time-lbl" for="time">Time</label>
 
-                <div class="col-sm-9">
-                    <RadzenTextBox @bind-Value=@StateManager.Game.Time
-                               MaxLength="100"
-                               Change=@(args => OnChange(args, "TextBox with 100 maximum characters"))
-                               Class="w-30"
-                               Disabled=@(gameType == GameType.Existente) />
-                </div>
+                <RadzenTextBox @bind-Value=@StateManager.Game.Time
+                           MaxLength="100"
+                           Change=@(args => OnChange(args, "TextBox with 100 maximum characters"))
+                           Class="time-txtbx"
+                           Disabled=@(gameType == GameType.Existente) />
             </div>
 
-            <div class="form-group row mb-1">
-                <label class="col-sm-3 col-form-label" for="nome">Nome</label>
+            <div class="name">
+                <label class="name-lbl" for="nome">Nome</label>
 
-                <div class="col-sm-9">
-                    <RadzenTextBox @bind-Value=@StateManager.Player.Name
-                               MaxLength="20"
-                               Change=@(args => OnChange(args, "TextBox with 20 maximum characters"))
-                               Class="w-30" />
-                </div>
+                <RadzenTextBox @bind-Value=@StateManager.Player.Name
+                           MaxLength="20"
+                           Change=@(args => OnChange(args, "TextBox with 20 maximum characters"))
+                           Class="name-txtbx" />
             </div>
 
-            <div class="form-group row mb-1">
-                <label class="col-sm-3 col-form-label" for="tipo">Tipo</label>
+            <div class="type">
+                <label class="type-lbl" for="tipo">Tipo</label>
 
-                <div class="col-sm-9">
-                    <RadzenDropDown id="tipo" AllowClear="true" TValue="EnumMemberType" Class="w-30"
-                                Data=@(EnumServices.GetOptions<EnumMemberType>())
-                                TextProperty="Description"
-                                ValueProperty="Value"
-                                Change=@(args => OnChangeDropDownTipo(args, "DropDown"))
-                                @bind-Value="StateManager.Player.MemberType" />
-                </div>
+                <RadzenDropDown id="tipo" AllowClear="true" TValue="EnumMemberType"
+                            Class="type-drpdwn"
+                            Data=@(EnumServices.GetOptions<EnumMemberType>())
+                            TextProperty="Description"
+                            ValueProperty="Value"
+                            Change=@(args => OnChangeDropDownTipo(args, "DropDown"))
+                            @bind-Value="StateManager.Player.MemberType" />
             </div>
 
             @if (StateManager.Player.MemberType == EnumMemberType.Player)
             {
-                <div class="form-group row mb-1">
-                    <label class="col-sm-3 col-form-label" for="tipo">Atuação</label>
+                <div class="acting">
+                    <label class="acting-lbl" for="tipo">Atuação</label>
 
-                    <div class="col-sm-9">
-                        <RadzenDropDown id="tipo" AllowClear="true" TValue="EnumPlayerType" Class="w-30"
-                                Data=@(EnumServices.GetOptions<EnumPlayerType>())
-                                TextProperty="Description"
-                                ValueProperty="Value"
-                                Change=@(args => OnChangeDropDownTipo(args, "DropDown"))
-                                @bind-Value="StateManager.Player.PlayerType" />
-                    </div>
+                    <RadzenDropDown id="tipo" AllowClear="true" TValue="EnumPlayerType"
+                            Class="acting-drpdwn"
+                            Data=@(EnumServices.GetOptions<EnumPlayerType>())
+                            TextProperty="Description"
+                            ValueProperty="Value"
+                            Change=@(args => OnChangeDropDownTipo(args, "DropDown"))
+                            @bind-Value="StateManager.Player.PlayerType" />
+
                 </div>
             }
 
-            <div class="form-group row mb-1">
-                <label class="col-sm-3 col-form-label" for="experimentalFeatures">Recursos Visuais Experimentais</label>
+            <div class="experimental-visual-resources">
+                <label class="experimental-visual-resources-lbl" for="experimentalFeatures">Recursos Visuais Experimentais</label>
 
-                <div class="col-sm-9">
-                    <RadzenSelectBar @ref=radzenSelectBar @bind-Value=@StateManager.Player.ExperimentalFeatures TValue="bool"
-                                 MouseEnter="@(args => ShowTooltip(radzenSelectBar.Element, @"Desative caso apresente algum problema na exibição avançada", new TooltipOptions(){ Duration = 10000}) )">
-                        <Items>
-                            <RadzenSelectBarItem Text="Ligado" Value="true" />
-                            <RadzenSelectBarItem Text="Desligado" Value="false" />
-                        </Items>
-                    </RadzenSelectBar>
-                </div>
+                <RadzenSelectBar @ref=radzenSelectBar @bind-Value=@StateManager.Player.ExperimentalFeatures TValue="bool"
+                             MouseEnter="@(args => ShowTooltip(radzenSelectBar.Element, @"Desative caso apresente algum problema na exibição avançada", new TooltipOptions(){ Duration = 10000}) )">
+                    <Items>
+                        <RadzenSelectBarItem Text="Ligado" Value="true" />
+                        <RadzenSelectBarItem Text="Desligado" Value="false" />
+                    </Items>
+                </RadzenSelectBar>
             </div>
 
             @if (gameType == GameType.Novo)
             {
-                <div class="form-group row mb-1">
-                    <label class="col-sm-3 col-form-label" for="nome">Sequência</label>
+                <div class="sequence">
+                    <label class="sequence-lbl" for="nome">Sequência</label>
 
-                    <div class="col-sm-9">
-                        <RadzenTextBox @bind-Value=@StateManager.Game.Sequence
-                               MaxLength="200"
-                               Change=@(args => OnChange(args, "TextBox with 200 maximum characters"))
-                               Class="w-30" />
-                    </div>
+                    <RadzenTextBox @bind-Value=@StateManager.Game.Sequence
+                           MaxLength="200"
+                           Change=@(args => OnChange(args, "TextBox with 200 maximum characters"))
+                           Class="sequence-txtbx" />
                 </div>
             }
 
