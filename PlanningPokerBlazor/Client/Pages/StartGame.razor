@@ -21,7 +21,7 @@
     @if (gameType != GameType.Nenhum)
     {
         <div class="container">
-            <div class="number-room">
+            <div class="number-room input-container">
                 <label class="number-room-lbl" for="sala">Número da Sala</label>
 
                 @if (gameType == GameType.Novo)
@@ -59,7 +59,7 @@
                 }
             </div>
 
-            <div class="time">
+            <div class="time input-container">
                 <label class="time-lbl" for="time">Time</label>
 
                 <RadzenTextBox @bind-Value=@StateManager.Game.Time
@@ -69,7 +69,7 @@
                            Disabled=@(gameType == GameType.Existente) />
             </div>
 
-            <div class="name">
+            <div class="name input-container">
                 <label class="name-lbl" for="nome">Nome</label>
 
                 <RadzenTextBox @bind-Value=@StateManager.Player.Name
@@ -78,7 +78,7 @@
                            Class="name-txtbx" />
             </div>
 
-            <div class="type">
+            <div class="type input-container">
                 <label class="type-lbl" for="tipo">Tipo</label>
 
                 <RadzenDropDown id="tipo" AllowClear="true" TValue="EnumMemberType"
@@ -92,7 +92,7 @@
 
             @if (StateManager.Player.MemberType == EnumMemberType.Player)
             {
-                <div class="acting">
+                <div class="acting input-container">
                     <label class="acting-lbl" for="tipo">Atuação</label>
 
                     <RadzenDropDown id="tipo" AllowClear="true" TValue="EnumPlayerType"
@@ -106,7 +106,7 @@
                 </div>
             }
 
-            <div class="experimental-visual-resources">
+            <div class="experimental-visual-resources input-container">
                 <label class="experimental-visual-resources-lbl" for="experimentalFeatures">Recursos Visuais Experimentais</label>
 
                 <RadzenSelectBar @ref=radzenSelectBar @bind-Value=@StateManager.Player.ExperimentalFeatures TValue="bool"
@@ -120,7 +120,7 @@
 
             @if (gameType == GameType.Novo)
             {
-                <div class="sequence">
+                <div class="sequence input-container">
                     <label class="sequence-lbl" for="nome">Sequência</label>
 
                     <RadzenTextBox @bind-Value=@StateManager.Game.Sequence
