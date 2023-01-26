@@ -1,16 +1,18 @@
 ﻿.planning-title {
-    color: #000000;
+  color: #000000;
 }
 
 .planning-initial-choose {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    justify-content: flex-start;
+  display: flex;
+  justify-content: flex-start;
+  gap: 5px;
 }
 
-@media (max-device-width: 355px) {
-    .btn {
-        width: 100%;
-    }
+@media (max-device-width: 550px) {
+  .planning-initial-choose {
+    flex-direction: column;
+  }
+  .btn {
+    width: 100%;
+  }
 }
