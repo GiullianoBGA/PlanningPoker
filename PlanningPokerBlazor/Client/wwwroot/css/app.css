@@ -42,41 +42,13 @@ html, body {
 }
 
 @media (max-device-width: 470px){
-    .number-room .number-room-txtbx {
-        margin-left: 0px;
-        width: 100%;
-    }
-
-    .time .time-txtbx {
-        margin-left: 0px;
-        width: 100%;
-    }
-
-    .name .name-txtbx {
-        margin-left: 0px;
-        width: 100%;
-    }
-
-    .type .type-drpdwn {
-        margin-left: 0px;
-        width: 100%;
-    }
-
-    .acting .acting-drpdwn {
+    .number-room-txtbx, .time-txtbx, .name-txtbx, .type-drpdwn, .acting-drpdwn, .sequence-txtbx {
         margin-left: 0px;
         width: 100%;
     }
 
     .sequence .sequence-txtbx {
         margin-bottom: 7px;
-        margin-left: 0px;
-        width: 100%;
-    }
-}
-
-@media (max-device-width: 355px) {
-    .number-room .number-room-textbox {
-        width: 100%;
     }
 }
 

@@ -221,7 +221,5 @@
     void OnChangeDropDownTipo(object value, string name)
     {
         var str = value is IEnumerable<object> ? string.Join(", ", (IEnumerable<object>)value) : value;
-
-        //console.Log($"{name} value changed to {str}");
     }
 }
