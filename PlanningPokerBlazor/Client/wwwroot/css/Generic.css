@@ -1,0 +1,39 @@
+.generic-btn-primary,
+.generic-btn-secondary {
+  background-color: #35a0d7;
+  color: #ffffff;
+  padding: 7px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: none;
+}
+
+.generic-btn-primary:hover {
+  background-color: #287ba5;
+}
+
+.generic-btn-primary:active {
+  background-color: #35a0d7;
+}
+
+.generic-btn-secondary {
+  background-color: #707070;
+}
+
+.generic-btn-secondary:hover {
+  background-color: #4d4d4d;
+}
+
+.generic-btn-secondary:active {
+  background-color: #707070;
+}
+
+.generic-icon {
+  padding: 6.95px 11.5px;
+  background-color: #707070;
+  color: #ffffff;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
