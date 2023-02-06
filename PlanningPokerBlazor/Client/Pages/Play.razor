@@ -10,7 +10,7 @@
 @inject DialogService DialogService
 @implements IDisposable
 
-<h3 style="color: #ffffff;">Planning Poker</h3>
+<h3 style="color: gray;">Planning Poker</h3>
 <hr />
 
 @if (!StateManager.Player.ExperimentalFeatures)
@@ -605,7 +605,7 @@ else
         <p class="mb-4">Informe a área de atuação da nova tarefa</p>
         <div class="row">
             <div class="col">
-                <RadzenButton Text="Backend" Click="(() => { enumPlayerType = EnumPlayerType.Backend; ds.Close(true); })" ButtonStyle="ButtonStyle.Info" Class="me-1" />
+                <RadzenButton Text="Backend" Click="(() => { enumPlayerType = EnumPlayerType.Backend; ds.Close(true); })" ButtonStyle="ButtonStyle.Secondary" Class="me-1" />
                 <RadzenButton Text="Frontend" Click="(() => { enumPlayerType = EnumPlayerType.FrontEnd; ds.Close(true); })" ButtonStyle="ButtonStyle.Primary" Class="me-1" />
                 <RadzenButton Text="Ambos" Click="(() => { enumPlayerType = EnumPlayerType.FullStack; ds.Close(true); })" ButtonStyle="ButtonStyle.Success" Class="me-1" />
             </div>

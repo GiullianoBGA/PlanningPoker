@@ -7,7 +7,7 @@ namespace PlanningPokerBlazor.Server.Hubs
     {
         private static List<GamePlay> gamePlays = new();
 
-        public async Task RegisterPlayerAsync(RegisterPlayerRequest registerPlayerRequest)
+        public async Task RegisterPlayerAsync2(RegisterPlayerRequest registerPlayerRequest)
         {
             var alreadyExists = gamePlays.Exists(ga => ga.HubConnectionId == Context.ConnectionId);
 
@@ -54,6 +54,95 @@ namespace PlanningPokerBlazor.Server.Hubs
             gamePlays.Add(gamePlay);
 
             await Groups.AddToGroupAsync(Context.ConnectionId, registerPlayerRequest.Game.Id);
+
+            await UpdateGame(gamePlay.Game.Id, registerPlayerRequest.Game.GameType);
+        }
+
+        public async Task RegisterPlayerAsync(RegisterPlayerRequest registerPlayerRequest)
+        {
+            if (gamePlays.Exists(ga => ga.HubConnectionId == Context.ConnectionId))
+                return;
+
+            //Atualizar dados de Context.ConnectionId com o Game recebido
+            if (RoomsCreated.RoomList.Any(x => x.GameId == registerPlayerRequest.Game.Id))
+            {
+                RoomsCreated.RoomList = RoomsCreated.RoomList.Where(x => x.GameId != null).ToList();
+            }
+            else
+            {
+                Room? room = RoomsCreated.RoomList.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
+                room.GameId = registerPlayerRequest.Game.Id;
+                room.Time = registerPlayerRequest.Game.Time;
+                room.Sequence = registerPlayerRequest.Game.Sequence;
+                room.GameType = registerPlayerRequest.Game.GameType;
+            }
+
+            if (registerPlayerRequest.Player.MemberType == EnumMemberType.Player)
+            {
+                Room roomPlayer = RoomsCreated.RoomList.First(x => x.GameId == registerPlayerRequest.Game.Id);
+
+                if (!roomPlayer.PlayerColors.Any(x => x.IsAvailable))
+                {
+                    throw new Exception("Não existem mais cadeiras disponíveis nesta sala no momento!");
+                }
+
+                registerPlayerRequest.Player.PlayerColor = GetPlayerColor(roomPlayer.PlayerColors);
+                registerPlayerRequest.Player.PlayerCSS = roomPlayer.PlayerCSSes.First(x => x.Id == registerPlayerRequest.Player.PlayerColor.Id);
+                registerPlayerRequest.Player.CardCSS = roomPlayer.CardCSSes.First(x => x.Id == registerPlayerRequest.Player.PlayerColor.Id);
+            }
+
+            var gamePlay = new GamePlay
+            {
+                HubConnectionId = Context.ConnectionId,
+                Game = registerPlayerRequest.Game,
+                Player = registerPlayerRequest.Player,
+                CardPlayed = new Card(),
+                CardVoted = new Card(),
+            };
+
+            gamePlays.Add(gamePlay);
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, registerPlayerRequest.Game.Id);
+
+            await UpdateGame(gamePlay.Game.Id, registerPlayerRequest.Game.GameType);
+        }
+
+        public async Task UnregisterPlayerAsync(RegisterPlayerRequest registerPlayerRequest)
+        {
+            if (!gamePlays.Exists(ga => ga.HubConnectionId == Context.ConnectionId))
+                return;
+
+            //Atualizar dados de Context.ConnectionId com o Game recebido
+
+            var t = gamePlays.Where(x => x.Game.Id == registerPlayerRequest.Game.Id && x.Player.Id == registerPlayerRequest.Player.Id).ToList();
+
+            Room roomPlayer = RoomsCreated.RoomList.First(x => x.GameId == registerPlayerRequest.Game.Id);
+            //if (registerPlayerRequest.Player.MemberType == EnumMemberType.Player)
+            //{
+
+            //    if (!roomPlayer.PlayerColors.Any(x => x.IsAvailable))
+            //    {
+            //        throw new Exception("Não existem mais cadeiras disponíveis nesta sala no momento!");
+            //    }
+
+            //    registerPlayerRequest.Player.PlayerColor = GetPlayerColor(roomPlayer.PlayerColors);
+            //    registerPlayerRequest.Player.PlayerCSS = roomPlayer.PlayerCSSes.First(x => x.Id == registerPlayerRequest.Player.PlayerColor.Id);
+            //    registerPlayerRequest.Player.CardCSS = roomPlayer.CardCSSes.First(x => x.Id == registerPlayerRequest.Player.PlayerColor.Id);
+            //}
+            //            remover jogador
+
+            var gamePlay = new GamePlay
+            {
+                HubConnectionId = Context.ConnectionId,
+                Game = registerPlayerRequest.Game,
+                Player = registerPlayerRequest.Player,
+                CardPlayed = new Card(),
+                CardVoted = new Card(),
+            };
+
+            gamePlays.Remove(gamePlay);
+
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, registerPlayerRequest.Game.Id);
 
             await UpdateGame(gamePlay.Game.Id, registerPlayerRequest.Game.GameType);
         }
