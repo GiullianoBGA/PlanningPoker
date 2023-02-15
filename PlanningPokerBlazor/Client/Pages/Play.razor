@@ -147,6 +147,8 @@
                     }
                     <br />
                     <button class="btn btn-primary" @onclick="ResetGame" disabled=@isResetGameDisabled>Nova Votação</button>
+
+                    <button class="btn btn-secondary" @onclick="UnregisterPlayerAsync">Sair do Jogo</button>
                 </div>
 
                 <div class="col col-lg-2">
@@ -404,7 +406,7 @@ else
         isDeniedToVote = !(StateManager.Player.MemberType == EnumMemberType.Player && (enumPlayerType == EnumPlayerType.FullStack || StateManager.Player.PlayerType == enumPlayerType || StateManager.Player.PlayerType == EnumPlayerType.FullStack));
 
         allPlayersHavePlayed = gamePlays.Where(x => x.Player.MemberType == EnumMemberType.Player
-    && (enumPlayerType == EnumPlayerType.FullStack || x.Player.PlayerType == enumPlayerType || x.Player.PlayerType == EnumPlayerType.FullStack)).All(gp => gp.HasPlayed);
+        && (enumPlayerType == EnumPlayerType.FullStack || x.Player.PlayerType == enumPlayerType || x.Player.PlayerType == EnumPlayerType.FullStack)).All(gp => gp.HasPlayed);
 
         if (allPlayersHavePlayed)
         {
@@ -432,6 +434,20 @@ else
         {
 
         }
+    }
+
+    private async Task UnregisterPlayerAsync()
+    {
+        try
+        {
+            await hubConnection.SendAsync("UnregisterPlayerAsync", new RegisterPlayerRequest { Player = StateManager.Player, Game = StateManager.Game });
+        }
+        catch (Exception ex)
+        {
+
+        }
+
+        NavigationManager.NavigateTo("/StartGame");
     }
 
 
